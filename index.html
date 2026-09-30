@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101722">
+  <title>Pong — First to Seven</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="game.js" defer onerror="document.getElementById('message').textContent = 'Game files could not load'; document.getElementById('detail').textContent = 'Open pong.html, or keep index.html, styles.css, and game.js in the same folder.';"></script>
+</head>
+<body>
+  <main class="game-shell">
+    <header>
+      <div><p class="eyebrow">THE ARCADE CLASSIC</p><h1>Pong<span>.</span></h1></div>
+      <p class="target">First to <strong>7</strong> wins</p>
+    </header>
+    <section class="scoreboard" aria-label="Score">
+      <div><span class="player-label">YOU</span><strong id="player-score">0</strong></div>
+      <span class="score-divider">:</span>
+      <div><span class="player-label">COMPUTER</span><strong id="ai-score">0</strong></div>
+    </section>
+    <section class="court" aria-label="Pong game">
+      <canvas id="game" width="960" height="540" tabindex="0" aria-label="Pong court. Use W and S or up and down arrow keys, or drag on the court to move your paddle.">Your browser needs canvas support to play Pong.</canvas>
+      <div id="overlay" class="overlay">
+        <h2 id="message">Loading the court…</h2>
+        <p id="detail">The game controls will be ready in a moment.</p>
+      </div>
+    </section>
+    <div class="toolbar">
+      <div class="controls">
+        <button id="start" class="primary" disabled>Start game</button>
+        <button id="pause" disabled>Pause</button>
+        <button id="restart" disabled>Restart</button>
+      </div>
+      <p class="keyboard-hint"><kbd>W</kbd><kbd>S</kbd> or <kbd>↑</kbd><kbd>↓</kbd> to move · <kbd>Space</kbd> to pause</p>
+    </div>
+    <div class="touch-controls" aria-label="Touch paddle controls">
+      <button id="move-up" aria-label="Move paddle up">↑ Move up</button>
+      <button id="move-down" aria-label="Move paddle down">↓ Move down</button>
+    </div>
+    <p class="touch-hint">Drag on the court, or hold the buttons to move.</p>
+    <p id="status" class="sr-only" role="status" aria-live="polite">Ready to play.</p>
+    <noscript><p>Enable JavaScript in your browser to play Pong.</p></noscript>
+    <footer>A little focus. A good angle. One more rally.</footer>
+  </main>
+</body>
+</html>
