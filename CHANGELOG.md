@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0.2
+
+- Explicitly sign GitHub APKs with the configured CI key and verify the resulting certificate before upload.
+- Fix inconsistent signatures that prevented updating from earlier GitHub builds. Installations from 2.0.0 or 2.0.1 require one uninstall to move to the corrected key.
+- Android version code 4; gameplay remains first to 3.
+
 ## 2.0.1
 
 - Shorter matches: the first player or computer to score 3 points wins.

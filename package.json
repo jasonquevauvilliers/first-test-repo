@@ -1,6 +1,6 @@
 {
   "name": "pong",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "private": true,
   "description": "Offline web and Android Pong game",
   "scripts": {

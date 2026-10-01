@@ -2,7 +2,7 @@
 
 A small arcade game built with vanilla HTML, CSS, and JavaScript, with an Android app packaged using Capacitor 8. The web game and standalone download still run without installing packages or building anything. Android development requires Node.js and Android Studio.
 
-Current version: **2.0.1** (Android version code **3**). See [CHANGELOG.md](CHANGELOG.md) for changes from version 1.
+Current version: **2.0.2** (Android version code **4**). See [CHANGELOG.md](CHANGELOG.md) for changes from version 1.
 
 To build and download an Android APK without your Mac, see [GitHub Actions setup and phone installation](docs/GITHUB_ACTIONS.md). Pull requests run regression checks and Android compilation/lint; trusted `main` builds also create a downloadable APK after the signing secret is configured.
 

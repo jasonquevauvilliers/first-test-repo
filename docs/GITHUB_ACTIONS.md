@@ -13,6 +13,8 @@ Use GitHub in your phone's browser while signed in. Some settings and artifact d
 
 The private key makes APK signatures consistent between builds. Keep a secure backup and retain the same secret for future updates. The expected debug keystore alias is `androiddebugkey`, with store/key passwords `android`; these are standard debug defaults. This key is for development builds and must not become your production Play Store signing key.
 
+From version 2.0.2, CI sets an explicit keystore path for Gradle and checks the APK's signing certificate against the repository key before uploading. Earlier 2.0.0 and 2.0.1 GitHub builds used inconsistent signatures despite restoring the key. Uninstall those versions once before installing 2.0.2; subsequent CI builds can update the app while the same secret is retained.
+
 ## Download and install on Android
 
 1. Open a successful `main` run in the Actions tab. Scroll to **Artifacts** and download **pong-android-apk**. GitHub downloads a ZIP; Android needs the `.apk` inside it.

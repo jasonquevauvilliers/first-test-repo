@@ -67,17 +67,26 @@ jobs:
             echo '::error::Add the repository Actions secret PONG_DEBUG_KEYSTORE_BASE64. See docs/GITHUB_ACTIONS.md.'
             exit 1
           fi
-          install -d -m 700 "$HOME/.android"
-          printf '%s' "$PONG_DEBUG_KEYSTORE_BASE64" | base64 --decode > "$HOME/.android/debug.keystore"
-          chmod 600 "$HOME/.android/debug.keystore"
-          keytool -list -keystore "$HOME/.android/debug.keystore" -alias androiddebugkey -storepass android > /dev/null
+          PONG_DEBUG_KEYSTORE_PATH="$RUNNER_TEMP/pong-signing/debug.keystore"
+          install -d -m 700 "$(dirname "$PONG_DEBUG_KEYSTORE_PATH")"
+          printf '%s' "$PONG_DEBUG_KEYSTORE_BASE64" | base64 --decode > "$PONG_DEBUG_KEYSTORE_PATH"
+          chmod 600 "$PONG_DEBUG_KEYSTORE_PATH"
+          keytool -list -keystore "$PONG_DEBUG_KEYSTORE_PATH" -alias androiddebugkey -storepass android > /dev/null
+          echo "PONG_DEBUG_KEYSTORE_PATH=$PONG_DEBUG_KEYSTORE_PATH" >> "$GITHUB_ENV"
       - name: Compile APK and run Android lint
         working-directory: android
         run: ./gradlew --no-daemon assembleDebug lintDebug
       - name: Verify APK signature and name download
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         run: |
-          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose android/app/build/outputs/apk/debug/app-debug.apk
+          PONG_SIGNATURE_REPORT=$("$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs android/app/build/outputs/apk/debug/app-debug.apk)
+          printf '%s\n' "$PONG_SIGNATURE_REPORT"
+          PONG_EXPECTED_CERT=$(keytool -exportcert -keystore "$PONG_DEBUG_KEYSTORE_PATH" -alias androiddebugkey -storepass android | sha256sum | cut -d ' ' -f 1)
+          PONG_ACTUAL_CERT=$(printf '%s\n' "$PONG_SIGNATURE_REPORT" | awk -F ': ' '/^Signer #1 certificate SHA-256 digest:/ {print $2}')
+          if [ -z "$PONG_ACTUAL_CERT" ] || [ "$PONG_ACTUAL_CERT" != "$PONG_EXPECTED_CERT" ]; then
+            echo '::error::APK signing certificate does not match the configured CI key. Refusing to upload an incompatible update.'
+            exit 1
+          fi
           PONG_VERSION=$(node -p "require('./package.json').version")
           mkdir -p apk-download
           cp android/app/build/outputs/apk/debug/app-debug.apk "apk-download/pong-${PONG_VERSION}-${GITHUB_SHA::7}-debug.apk"
@@ -104,4 +113,4 @@ jobs:
           retention-days: 14
       - name: Remove signing key from runner
         if: always()
-        run: rm -f "$HOME/.android/debug.keystore"
+        run: rm -f "$RUNNER_TEMP/pong-signing/debug.keystore"
