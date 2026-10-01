@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.1
+
+- Shorter matches: the first player or computer to score 3 points wins.
+- Updated the match instructions and Android version code to 3.
+
 ## 2.0.0
 
 - Orange player paddle and purple computer paddle, with a matching dark purple interface.

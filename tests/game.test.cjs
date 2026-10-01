@@ -79,14 +79,25 @@ test('pause instructions match touch, native Android, and desktop controls', () 
   assert.match(element('detail').textContent, /Space/);
 });
 
-test('scores stop the match at seven and restart clears score and held input', () => {
-  const { run } = loadGame();
-  run('for(let i=0;i<7;i++) score(true)');
-  assert.equal(run('game.state'), 'over');
-  assert.equal(run('game.playerScore'), 7);
-  run('start()');
-  assert.equal(run('game.playerScore'), 0);
-  assert.equal(run('game.state'), 'running');
+test('either side wins at three, with rematches clearing scores and held input', () => {
+  for (const playerWon of [true, false]) {
+    const { run, element } = loadGame();
+    assert.equal(element('status').textContent, 'Game started. First to three wins.');
+    run(`score(${playerWon}); score(${playerWon})`);
+    assert.equal(run('game.state'), 'running', 'two points must not end the match');
+    run('keys.add("w"); heldDirections.set(1, -1)');
+    run(`score(${playerWon})`);
+    assert.equal(run('game.state'), 'over');
+    assert.equal(run(playerWon ? 'game.playerScore' : 'game.aiScore'), 3);
+    assert.equal(element('message').textContent, playerWon ? 'You win!' : 'Computer wins');
+    assert.equal(run('keys.size + heldDirections.size'), 0);
+    const finalScore = run('JSON.stringify(game)');
+    run('update(1)');
+    assert.equal(run('JSON.stringify(game)'), finalScore, 'play stops after the third point');
+    run('start()');
+    assert.equal(run('game.playerScore + game.aiScore'), 0);
+    assert.equal(run('game.state'), 'running');
+  }
 });
 
 test('multiple fingers stay independent, including two fingers on one button', () => {
