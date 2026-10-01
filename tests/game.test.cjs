@@ -5,7 +5,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 const root = path.join(__dirname, '..');
 
-function loadGame() {
+function loadGame(options = {}) {
   const elements = new Map();
   const element = id => {
     if (!elements.has(id)) elements.set(id, {
@@ -18,9 +18,11 @@ function loadGame() {
     });
     return elements.get(id);
   };
+  const document = element('document');
+  document.getElementById = element;
   const context = vm.createContext({
-    document: { getElementById: element, addEventListener() {} },
-    window: element('window'), requestAnimationFrame() {},
+    document,
+    window: Object.assign(element('window'), options.window), requestAnimationFrame() {},
   });
   vm.runInContext(fs.readFileSync(path.join(root, 'game.js'), 'utf8'), context);
   const run = code => vm.runInContext(code, context);
@@ -42,6 +44,39 @@ test('wall bounce before a paddle collision is resolved in chronological order',
   assert.ok(run('game.ball.vx') > 0);
   assert.ok(run('game.ball.y') >= 9);
   assert.ok(run('game.ball.x') >= 53);
+});
+
+test('native haptics trigger once on a player hit, not on computer or wall hits', () => {
+  const impacts = [];
+  const { run } = loadGame({ window: { Capacitor: { Plugins: { Haptics: {
+    impact(options) { impacts.push(options.style); return Promise.resolve(); },
+  } } } } });
+  run('game.playerY=200; Object.assign(game.ball,{x:54,y:240,vx:-380,vy:0,speed:380}); advanceBall(STEP); advanceBall(STEP)');
+  assert.deepEqual(impacts, ['LIGHT']);
+  run('game.aiY=200; Object.assign(game.ball,{x:RIGHT_X-BALL_RADIUS-1,y:240,vx:380,vy:0,speed:380}); advanceBall(STEP)');
+  run('Object.assign(game.ball,{x:480,y:9.5,vx:0,vy:-380,speed:380}); advanceBall(STEP)');
+  assert.deepEqual(impacts, ['LIGHT']);
+});
+
+test('unavailable native vibration never prevents a player bounce', async () => {
+  for (const impact of [() => { throw new Error('No vibrator'); }, () => Promise.reject(new Error('Haptics disabled'))]) {
+    const { run } = loadGame({ window: { Capacitor: { Plugins: { Haptics: { impact } } } } });
+    run('game.playerY=200; Object.assign(game.ball,{x:54,y:240,vx:-380,vy:0,speed:380}); advanceBall(STEP)');
+    assert.ok(run('game.ball.vx') > 0);
+    assert.equal(run('game.state'), 'running');
+    await Promise.resolve();
+  }
+});
+
+test('pause instructions match touch, native Android, and desktop controls', () => {
+  for (const window of [{ matchMedia: () => ({ matches: true }) }, { Capacitor: { isNativePlatform: () => true } }]) {
+    const { run, element } = loadGame({ window });
+    run('pause()');
+    assert.equal(element('detail').textContent, 'Tap Resume to keep playing.');
+  }
+  const { run, element } = loadGame();
+  run('pause()');
+  assert.match(element('detail').textContent, /Space/);
 });
 
 test('scores stop the match at seven and restart clears score and held input', () => {
@@ -96,6 +131,26 @@ test('drag maps displayed court coordinates and clamps outside its bounds', () =
   element('game').emit('pointercancel', { pointerId: 4 });
   element('game').emit('pointermove', { pointerId: 4, clientY: 235 });
   assert.equal(run('game.playerY'), 444);
+});
+
+test('hiding the game pauses play, clears touch input, and requires an explicit resume', () => {
+  const { run, element } = loadGame();
+  element('move-up').emit('pointerdown', { pointerId: 1 });
+  element('game').emit('pointerdown', { pointerId: 2, clientY: 235 });
+  run('keys.add("w")');
+  element('document').hidden = true;
+  element('document').emit('visibilitychange');
+  assert.equal(run('game.state'), 'paused');
+  assert.equal(run('keys.size + heldDirections.size'), 0);
+  assert.equal(run('dragPointer'), null);
+  const before = run('JSON.stringify(game)');
+  run('update(1)');
+  assert.equal(run('JSON.stringify(game)'), before);
+  element('document').hidden = false;
+  element('document').emit('visibilitychange');
+  assert.equal(run('game.state'), 'paused');
+  element('pause').emit('click');
+  assert.equal(run('game.state'), 'running');
 });
 
 test('standalone download contains current game and styles without asset requests', () => {

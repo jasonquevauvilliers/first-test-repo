@@ -17,6 +17,22 @@ const game = {
 const LEFT_X = 30, RIGHT_X = WIDTH - 30 - PADDLE_WIDTH;
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
+function usesTouchControls() {
+  return window.Capacitor?.isNativePlatform?.() === true ||
+    window.matchMedia?.("(any-pointer: coarse), (max-width: 600px)").matches === true;
+}
+
+function playerHitFeedback() {
+  // Capacitor injects native plugin proxies; regular browsers need no packages.
+  const haptics = window.Capacitor?.Plugins?.Haptics;
+  if (!haptics) return;
+  try {
+    Promise.resolve(haptics.impact({ style: "LIGHT" })).catch(() => {});
+  } catch {
+    // Missing hardware or a disabled vibration service must not stop a rally.
+  }
+}
+
 function serve(direction = Math.random() < .5 ? -1 : 1) {
   const angle = (Math.random() - .5) * .8;
   Object.assign(game.ball, { x: WIDTH / 2, y: HEIGHT / 2, speed: 380, vx: direction * Math.cos(angle) * 380, vy: Math.sin(angle) * 380 });
@@ -67,7 +83,7 @@ function pause() {
   if (game.state !== "running") return;
   game.state = "paused";
   clearInput();
-  syncUI("Taking a breather", "Press Resume or Space to keep playing.");
+  syncUI("Taking a breather", usesTouchControls() ? "Tap Resume to keep playing." : "Press Resume or Space to keep playing.");
 }
 
 function score(playerWon) {
@@ -90,6 +106,7 @@ function bounce(paddleY, direction) {
   ball.speed = Math.min(ball.speed + 26, 760);
   ball.vx = direction * Math.cos(angle) * ball.speed;
   ball.vy = Math.sin(angle) * ball.speed;
+  if (direction === 1) playerHitFeedback();
 }
 
 function update(dt) {
@@ -147,19 +164,19 @@ function advanceBall(dt) {
 
 function draw() {
   ctx.clearRect(0, 0, WIDTH, HEIGHT);
-  ctx.strokeStyle = "#293d50";
+  ctx.strokeStyle = "#503563";
   ctx.lineWidth = 2;
   ctx.setLineDash([8, 12]);
   ctx.beginPath(); ctx.moveTo(WIDTH / 2, 22); ctx.lineTo(WIDTH / 2, HEIGHT - 22); ctx.stroke();
   ctx.setLineDash([]);
-  ctx.strokeStyle = "#1b2c3e";
+  ctx.strokeStyle = "#2c1d3f";
   ctx.beginPath(); ctx.arc(WIDTH / 2, HEIGHT / 2, 66, 0, Math.PI * 2); ctx.stroke();
-  ctx.fillStyle = "#70efc5";
+  ctx.fillStyle = "#ffab66";
   ctx.fillRect(LEFT_X, game.playerY, PADDLE_WIDTH, PADDLE_HEIGHT);
-  ctx.fillStyle = "#95b8f1";
+  ctx.fillStyle = "#c39aff";
   ctx.fillRect(RIGHT_X, game.aiY, PADDLE_WIDTH, PADDLE_HEIGHT);
-  ctx.fillStyle = "#f3f7fc";
-  ctx.shadowColor = "#e0eeff"; ctx.shadowBlur = 14;
+  ctx.fillStyle = "#fff5eb";
+  ctx.shadowColor = "#ffd4ad"; ctx.shadowBlur = 14;
   ctx.beginPath(); ctx.arc(game.ball.x, game.ball.y, BALL_RADIUS, 0, Math.PI * 2); ctx.fill();
   ctx.shadowBlur = 0;
 }
@@ -167,6 +184,11 @@ function draw() {
 ui.start.addEventListener("click", start);
 ui.pause.addEventListener("click", () => game.state === "paused" ? start() : pause());
 ui.restart.addEventListener("click", () => { reset(); game.state = "ready"; start(); });
+// Holding a game control should never open selection or a long-press menu.
+for (const control of [canvas, ui.start, ui.pause, ui.restart, document.getElementById("move-up"), document.getElementById("move-down")]) {
+  control.addEventListener("contextmenu", event => event.preventDefault());
+  control.addEventListener("selectstart", event => event.preventDefault());
+}
 window.addEventListener("keydown", event => {
   const key = event.key.toLowerCase();
   if (["w", "s", "arrowup", "arrowdown"].includes(key)) {
