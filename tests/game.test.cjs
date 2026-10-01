@@ -10,6 +10,8 @@ function loadGame(options = {}) {
   const element = id => {
     if (!elements.has(id)) elements.set(id, {
       listeners: {}, disabled: false, textContent: '', hidden: false,
+      attributes: {},
+      setAttribute(name, value) { this.attributes[name] = value; },
       addEventListener(type, handler) { (this.listeners[type] ??= []).push(handler); },
       emit(type, event = {}) { for (const handler of this.listeners[type] ?? []) handler({ preventDefault() {}, button: 0, ...event }); },
       focus() {}, setPointerCapture() {},
@@ -169,4 +171,39 @@ test('standalone download contains current game and styles without asset request
   assert.ok(html.includes(fs.readFileSync(path.join(root, 'game.js'), 'utf8')));
   assert.ok(html.includes(fs.readFileSync(path.join(root, 'styles.css'), 'utf8')));
   assert.doesNotMatch(html, /<script[^>]+src=|<link[^>]+href="styles.css"/);
+});
+
+test('ball choices change appearance without resetting a rally or its collision behavior', () => {
+  const { run, element } = loadGame();
+  for (const style of ['circle', 'heart', 'star', 'dog']) {
+    const before = run('JSON.stringify(game)');
+    element(`ball-${style}`).emit('click');
+    assert.equal(run('ballStyle'), style);
+    assert.equal(run('JSON.stringify(game)'), before);
+    for (const other of ['circle', 'heart', 'star', 'dog']) {
+      assert.equal(element(`ball-${other}`).attributes['aria-pressed'], String(style === other));
+    }
+    run('game.playerY=200; Object.assign(game.ball,{x:54,y:240,vx:-380,vy:0,speed:380}); advanceBall(STEP)');
+    assert.ok(run('game.ball.vx') > 0, `${style} bounces off the paddle`);
+    run('score(true); start()');
+    assert.equal(run('ballStyle'), style, 'serving and starting keep the selected skin');
+  }
+});
+
+test('ball preference survives reopening and invalid or unavailable storage falls back safely', () => {
+  const saved = new Map();
+  const localStorage = { getItem: key => saved.get(key), setItem: (key, value) => saved.set(key, value) };
+  const first = loadGame({ window: { localStorage } });
+  first.element('ball-dog').emit('click');
+  const reopened = loadGame({ window: { localStorage } });
+  assert.equal(reopened.run('ballStyle'), 'dog');
+  assert.equal(reopened.element('ball-dog').attributes['aria-pressed'], 'true');
+  saved.set('pong.ballStyle', 'invalid');
+  assert.equal(loadGame({ window: { localStorage } }).run('ballStyle'), 'circle');
+  const blocked = loadGame({ window: { localStorage: {
+    getItem() { throw new Error('Storage disabled'); }, setItem() { throw new Error('Storage disabled'); },
+  } } });
+  blocked.element('ball-heart').emit('click');
+  assert.equal(blocked.run('ballStyle'), 'heart');
+  assert.equal(blocked.run('game.state'), 'running');
 });

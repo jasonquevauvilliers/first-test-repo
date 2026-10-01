@@ -26,6 +26,15 @@
         <p id="detail">The game controls will be ready in a moment.</p>
       </div>
     </section>
+    <fieldset class="ball-picker">
+      <legend>Choose your ball</legend>
+      <div class="ball-options">
+        <button id="ball-circle" type="button" aria-pressed="true"><canvas id="preview-circle" class="ball-preview" width="40" height="40" aria-hidden="true"></canvas>Circle</button>
+        <button id="ball-heart" type="button" aria-pressed="false"><canvas id="preview-heart" class="ball-preview" width="40" height="40" aria-hidden="true"></canvas>Heart</button>
+        <button id="ball-star" type="button" aria-pressed="false"><canvas id="preview-star" class="ball-preview" width="40" height="40" aria-hidden="true"></canvas>Star</button>
+        <button id="ball-dog" type="button" aria-pressed="false"><canvas id="preview-dog" class="ball-preview" width="40" height="40" aria-hidden="true"></canvas>Dog</button>
+      </div>
+    </fieldset>
     <div class="toolbar">
       <div class="controls">
         <button id="start" class="primary" disabled>Start game</button>
@@ -41,7 +50,7 @@
     <p class="touch-hint">Drag on the court, or hold the buttons to move.</p>
     <p id="status" class="sr-only" role="status" aria-live="polite">Ready to play.</p>
     <noscript><p>Enable JavaScript in your browser to play Pong.</p></noscript>
-    <footer>Pong v2.0.2 · A little focus. A good angle. One more rally.</footer>
+    <footer>Pong v2.1.0 · A little focus. A good angle. One more rally.</footer>
   </main>
 </body>
 </html>

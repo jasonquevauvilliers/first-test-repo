@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.1.0
+
+- Customize the ball with Circle, Heart, Star, and Dog drawings and touch-friendly preview buttons.
+- Remember your chosen ball on the device; changing style keeps the current rally and scores.
+- All ball styles work offline on Android, the web, and the standalone download, with the same collision physics.
+- Android version code 5; retain the verified CI signing key for updates from 2.0.2.
+
 ## 2.0.2
 
 - Explicitly sign GitHub APKs with the configured CI key and verify the resulting certificate before upload.
