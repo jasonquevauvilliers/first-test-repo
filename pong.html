@@ -45,6 +45,13 @@ footer { color: #b49bc8; font-size: 12px; text-align: center; padding-top: 28px;
 .touch-controls button { flex: 1; min-height: 72px; font-size: 17px; touch-action: none; }
 .touch-controls button:active { background: #56366d; }
 .touch-hint { display: none; color: #c0add0; font-size: 12px; text-align: center; }
+.ball-picker { margin: 18px 0 0; padding: 0; border: 0; min-width: 0; }
+.ball-picker legend { padding: 0; margin-bottom: 8px; color: #c0add0; font-size: 12px; }
+.ball-options { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.ball-options button { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 56px; padding: 8px; }
+.ball-options button[aria-pressed="true"] { background: #503268; border-color: #c39aff; box-shadow: inset 0 0 0 1px #c39aff; }
+canvas.ball-preview { width: 28px; height: 28px; flex-shrink: 0; pointer-events: none; }
+@media (max-width: 600px) { .ball-options button { flex-direction: column; gap: 3px; min-height: 64px; } }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 @media (any-pointer: coarse), (max-width: 600px) { .touch-controls { display: flex; } .touch-hint { display: block; } .keyboard-hint { display: none; } .controls { width: 100%; } .controls button { flex: 1; min-height: 52px; font-size: 15px; } }
 @media (max-width: 600px) { .game-shell { width: calc(100% - 24px); padding-top: 24px; } h1 { font-size: 36px; } .scoreboard { padding: 18px 0; } .toolbar { justify-content: center; } button { padding: 11px 15px; } .overlay p { font-size: 12px; } }
@@ -69,6 +76,15 @@ footer { color: #b49bc8; font-size: 12px; text-align: center; padding-top: 28px;
         <p id="detail">The game controls will be ready in a moment.</p>
       </div>
     </section>
+    <fieldset class="ball-picker">
+      <legend>Choose your ball</legend>
+      <div class="ball-options">
+        <button id="ball-circle" type="button" aria-pressed="true"><canvas id="preview-circle" class="ball-preview" width="40" height="40" aria-hidden="true"></canvas>Circle</button>
+        <button id="ball-heart" type="button" aria-pressed="false"><canvas id="preview-heart" class="ball-preview" width="40" height="40" aria-hidden="true"></canvas>Heart</button>
+        <button id="ball-star" type="button" aria-pressed="false"><canvas id="preview-star" class="ball-preview" width="40" height="40" aria-hidden="true"></canvas>Star</button>
+        <button id="ball-dog" type="button" aria-pressed="false"><canvas id="preview-dog" class="ball-preview" width="40" height="40" aria-hidden="true"></canvas>Dog</button>
+      </div>
+    </fieldset>
     <div class="toolbar">
       <div class="controls">
         <button id="start" class="primary" disabled>Start game</button>
@@ -84,7 +100,7 @@ footer { color: #b49bc8; font-size: 12px; text-align: center; padding-top: 28px;
     <p class="touch-hint">Drag on the court, or hold the buttons to move.</p>
     <p id="status" class="sr-only" role="status" aria-live="polite">Ready to play.</p>
     <noscript><p>Enable JavaScript in your browser to play Pong.</p></noscript>
-    <footer>Pong v2.0.2 · A little focus. A good angle. One more rally.</footer>
+    <footer>Pong v2.1.0 · A little focus. A good angle. One more rally.</footer>
   </main>
 <script>
 "use strict";
@@ -94,6 +110,15 @@ const ctx = canvas.getContext("2d");
 const ui = Object.fromEntries(["player-score", "ai-score", "overlay", "message", "detail", "start", "pause", "restart", "status"].map(id => [id, document.getElementById(id)]));
 const WIDTH = 960, HEIGHT = 540, PADDLE_WIDTH = 14, PADDLE_HEIGHT = 96;
 const BALL_RADIUS = 9, WINNING_SCORE = 3, STEP = 1 / 120;
+const BALL_STYLES = ["circle", "heart", "star", "dog"];
+const ballButtons = Object.fromEntries(BALL_STYLES.map(style => [style, document.getElementById(`ball-${style}`)]));
+let ballStyle = "circle";
+try {
+  const saved = window.localStorage?.getItem("pong.ballStyle");
+  if (BALL_STYLES.includes(saved)) ballStyle = saved;
+} catch {
+  // Storage can be disabled in a browser; customization still works this session.
+}
 const keys = new Set();
 const heldDirections = new Map();
 let dragPointer = null;
@@ -251,6 +276,62 @@ function advanceBall(dt) {
   }
 }
 
+// Every skin fits the same radius and uses the same collision physics.
+function drawBall(context, style, x, y, radius) {
+  context.save();
+  context.translate(x, y);
+  context.scale(radius, radius);
+  context.fillStyle = "#fff5eb";
+  context.beginPath();
+  if (style === "heart") {
+    context.moveTo(0, .9);
+    context.bezierCurveTo(-1.8, -.2, -.65, -1.5, 0, -.55);
+    context.bezierCurveTo(.65, -1.5, 1.8, -.2, 0, .9);
+    context.fillStyle = "#ffabbb";
+    context.fill();
+  } else if (style === "star") {
+    for (let i = 0; i < 10; i++) {
+      const angle = -Math.PI / 2 + i * Math.PI / 5;
+      const reach = i % 2 ? .45 : 1;
+      const px = Math.cos(angle) * reach, py = Math.sin(angle) * reach;
+      if (i === 0) context.moveTo(px, py); else context.lineTo(px, py);
+    }
+    context.closePath();
+    context.fillStyle = "#ffd66e";
+    context.fill();
+  } else if (style === "dog") {
+    context.fillStyle = "#ffab66";
+    context.ellipse(-.62, -.05, .3, .68, -.3, 0, Math.PI * 2);
+    context.ellipse(.62, -.05, .3, .68, .3, 0, Math.PI * 2);
+    context.fill();
+    context.beginPath();
+    context.fillStyle = "#fff5eb";
+    context.ellipse(0, 0, .64, .82, 0, 0, Math.PI * 2);
+    context.fill();
+    context.shadowBlur = 0;
+    context.fillStyle = "#2b1507";
+    for (const eyeX of [-.25, .25]) {
+      context.beginPath(); context.arc(eyeX, -.18, .1, 0, Math.PI * 2); context.fill();
+    }
+    context.beginPath(); context.ellipse(0, .16, .15, .11, 0, 0, Math.PI * 2); context.fill();
+    context.fillStyle = "#ffabbb";
+    context.beginPath(); context.ellipse(0, .42, .1, .16, 0, 0, Math.PI * 2); context.fill();
+  } else {
+    context.arc(0, 0, 1, 0, Math.PI * 2);
+    context.fill();
+  }
+  context.restore();
+}
+
+function selectBallStyle(style) {
+  if (!BALL_STYLES.includes(style)) return;
+  ballStyle = style;
+  for (const [name, button] of Object.entries(ballButtons)) button.setAttribute("aria-pressed", String(name === style));
+  try { window.localStorage?.setItem("pong.ballStyle", style); } catch { /* Session-only when storage is unavailable. */ }
+  ui.status.textContent = `${style[0].toUpperCase() + style.slice(1)} ball selected.`;
+  draw();
+}
+
 function draw() {
   ctx.clearRect(0, 0, WIDTH, HEIGHT);
   ctx.strokeStyle = "#503563";
@@ -266,15 +347,20 @@ function draw() {
   ctx.fillRect(RIGHT_X, game.aiY, PADDLE_WIDTH, PADDLE_HEIGHT);
   ctx.fillStyle = "#fff5eb";
   ctx.shadowColor = "#ffd4ad"; ctx.shadowBlur = 14;
-  ctx.beginPath(); ctx.arc(game.ball.x, game.ball.y, BALL_RADIUS, 0, Math.PI * 2); ctx.fill();
+  drawBall(ctx, ballStyle, game.ball.x, game.ball.y, BALL_RADIUS);
   ctx.shadowBlur = 0;
 }
 
 ui.start.addEventListener("click", start);
 ui.pause.addEventListener("click", () => game.state === "paused" ? start() : pause());
 ui.restart.addEventListener("click", () => { reset(); game.state = "ready"; start(); });
+for (const [style, button] of Object.entries(ballButtons)) {
+  button.setAttribute("aria-pressed", String(style === ballStyle));
+  button.addEventListener("click", () => selectBallStyle(style));
+  drawBall(document.getElementById(`preview-${style}`).getContext("2d"), style, 20, 20, 16);
+}
 // Holding a game control should never open selection or a long-press menu.
-for (const control of [canvas, ui.start, ui.pause, ui.restart, document.getElementById("move-up"), document.getElementById("move-down")]) {
+for (const control of [canvas, ui.start, ui.pause, ui.restart, document.getElementById("move-up"), document.getElementById("move-down"), ...Object.values(ballButtons)]) {
   control.addEventListener("contextmenu", event => event.preventDefault());
   control.addEventListener("selectstart", event => event.preventDefault());
 }

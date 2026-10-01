@@ -2,7 +2,7 @@
 
 A small arcade game built with vanilla HTML, CSS, and JavaScript, with an Android app packaged using Capacitor 8. The web game and standalone download still run without installing packages or building anything. Android development requires Node.js and Android Studio.
 
-Current version: **2.0.2** (Android version code **4**). See [CHANGELOG.md](CHANGELOG.md) for changes from version 1.
+Current version: **2.1.0** (Android version code **5**). See [CHANGELOG.md](CHANGELOG.md) for changes from version 1.
 
 To build and download an Android APK without your Mac, see [GitHub Actions setup and phone installation](docs/GITHUB_ACTIONS.md). Pull requests run regression checks and Android compilation/lint; trusted `main` builds also create a downloadable APK after the signing secret is configured.
 
@@ -85,6 +85,7 @@ If Start does not work, check that JavaScript is enabled and you downloaded `pon
 - Click **Pause** or press **Space** to pause. Click **Resume** or press Space to continue. The game pauses automatically when the window loses focus or the tab is hidden.
 - **Restart** immediately starts a new match with both scores at zero.
 - First to **3** wins. Click **Play again** for a rematch.
+- Use **Choose your ball** to select Circle, Heart, Star, or Dog, even during a rally. Your choice is saved on the device when storage is available. All four styles use the same collision physics and work offline.
 
 Aim with the paddle: hitting near its edge sends the ball at a sharper angle. The ball speeds up with each paddle hit, to a capped maximum. The computer has a limited movement speed so it can be beaten.
 
