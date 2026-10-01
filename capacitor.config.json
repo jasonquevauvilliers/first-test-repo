@@ -1,0 +1,8 @@
+{
+  "appId": "com.pong.game",
+  "appName": "Pong",
+  "webDir": "dist",
+  "android": {
+    "backgroundColor": "#160f23"
+  }
+}
