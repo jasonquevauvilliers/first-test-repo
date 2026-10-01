@@ -4,6 +4,8 @@ A small arcade game built with vanilla HTML, CSS, and JavaScript, with an Androi
 
 Current version: **2.0.0** (Android version code **2**). See [CHANGELOG.md](CHANGELOG.md) for changes from version 1.
 
+To build and download an Android APK without your Mac, see [GitHub Actions setup and phone installation](docs/GITHUB_ACTIONS.md). Pull requests run regression checks and Android compilation/lint; trusted `main` builds also create a downloadable APK after the signing secret is configured.
+
 ## Run
 
 **For a download:** download `pong.html` and open it in a modern browser. It includes all styling and game code in one file and works offline.
