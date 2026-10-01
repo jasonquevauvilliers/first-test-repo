@@ -3,12 +3,24 @@ apply plugin: 'com.android.application'
 android {
     namespace = "com.pong.game"
     compileSdk = rootProject.ext.compileSdkVersion
+    signingConfigs {
+        debug {
+            // CI supplies an explicit path; local Android Studio builds keep their default key.
+            def ciKeystorePath = System.getenv('PONG_DEBUG_KEYSTORE_PATH')
+            if (ciKeystorePath) {
+                storeFile file(ciKeystorePath)
+                storePassword 'android'
+                keyAlias 'androiddebugkey'
+                keyPassword 'android'
+            }
+        }
+    }
     defaultConfig {
         applicationId "com.pong.game"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 3
-        versionName "2.0.1"
+        versionCode 4
+        versionName "2.0.2"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
