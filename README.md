@@ -2,7 +2,7 @@
 
 A small arcade game built with vanilla HTML, CSS, and JavaScript, with an Android app packaged using Capacitor 8. The web game and standalone download still run without installing packages or building anything. Android development requires Node.js and Android Studio.
 
-Current version: **2.0.0** (Android version code **2**). See [CHANGELOG.md](CHANGELOG.md) for changes from version 1.
+Current version: **2.0.1** (Android version code **3**). See [CHANGELOG.md](CHANGELOG.md) for changes from version 1.
 
 To build and download an Android APK without your Mac, see [GitHub Actions setup and phone installation](docs/GITHUB_ACTIONS.md). Pull requests run regression checks and Android compilation/lint; trusted `main` builds also create a downloadable APK after the signing secret is configured.
 
@@ -84,7 +84,7 @@ If Start does not work, check that JavaScript is enabled and you downloaded `pon
 - On Android, a light haptic pulse accompanies hits on your paddle. Devices without vibration hardware can still play normally. The browser game works without native haptics.
 - Click **Pause** or press **Space** to pause. Click **Resume** or press Space to continue. The game pauses automatically when the window loses focus or the tab is hidden.
 - **Restart** immediately starts a new match with both scores at zero.
-- First to **7** wins. Click **Play again** for a rematch.
+- First to **3** wins. Click **Play again** for a rematch.
 
 Aim with the paddle: hitting near its edge sends the ball at a sharper angle. The ball speeds up with each paddle hit, to a capped maximum. The computer has a limited movement speed so it can be beaten.
 
@@ -102,7 +102,7 @@ Aim with the paddle: hitting near its edge sends the ball at a sharper angle. Th
 
 ## Manual checks
 
-Start a match, try both key pairs, and check that the paddle stays inside the court. Check wall and paddle bounces, and that a missed ball awards the opposing side one point. Pause and verify the ball and paddles freeze, then resume. Restart to clear scores. Play to seven to check the winner screen and rematch. Resize the window and test touch controls on a mobile device.
+Start a match, try both key pairs, and check that the paddle stays inside the court. Check wall and paddle bounces, and that a missed ball awards the opposing side one point. Pause and verify the ball and paddles freeze, then resume. Restart to clear scores. Play to three to check the winner screen and rematch. Resize the window and test touch controls on a mobile device.
 
 Run the dependency-free regression tests with `node --test tests/game.test.cjs`. They cover collision timing, wall/paddle corner ordering, touch cancellation, multiple fingers, input cleanup, and the standalone download. Mobile browser testing should also check dragging outside the court, releasing outside a button, and switching away from the tab while holding a control.
 

@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#160f23">
-  <title>Pong — First to Seven</title>
+  <title>Pong — First to Three</title>
   <style>
 :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #160f23; color: #faf3ff; }
 * { box-sizing: border-box; }
@@ -55,7 +55,7 @@ footer { color: #b49bc8; font-size: 12px; text-align: center; padding-top: 28px;
   <main class="game-shell">
     <header>
       <div><p class="eyebrow">THE ARCADE CLASSIC</p><h1>Pong<span>.</span></h1></div>
-      <p class="target">First to <strong>7</strong> wins</p>
+      <p class="target">First to <strong>3</strong> wins</p>
     </header>
     <section class="scoreboard" aria-label="Score">
       <div><span class="player-label">YOU</span><strong id="player-score">0</strong></div>
@@ -84,7 +84,7 @@ footer { color: #b49bc8; font-size: 12px; text-align: center; padding-top: 28px;
     <p class="touch-hint">Drag on the court, or hold the buttons to move.</p>
     <p id="status" class="sr-only" role="status" aria-live="polite">Ready to play.</p>
     <noscript><p>Enable JavaScript in your browser to play Pong.</p></noscript>
-    <footer>Pong v2.0.0 · A little focus. A good angle. One more rally.</footer>
+    <footer>Pong v2.0.1 · A little focus. A good angle. One more rally.</footer>
   </main>
 <script>
 "use strict";
@@ -93,7 +93,7 @@ const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 const ui = Object.fromEntries(["player-score", "ai-score", "overlay", "message", "detail", "start", "pause", "restart", "status"].map(id => [id, document.getElementById(id)]));
 const WIDTH = 960, HEIGHT = 540, PADDLE_WIDTH = 14, PADDLE_HEIGHT = 96;
-const BALL_RADIUS = 9, WINNING_SCORE = 7, STEP = 1 / 120;
+const BALL_RADIUS = 9, WINNING_SCORE = 3, STEP = 1 / 120;
 const keys = new Set();
 const heldDirections = new Map();
 let dragPointer = null;
@@ -165,7 +165,7 @@ function start() {
   accumulator = 0;
   canvas.focus({ preventScroll: true });
   syncUI();
-  ui.status.textContent = "Game started. First to seven wins.";
+  ui.status.textContent = "Game started. First to three wins.";
 }
 
 function pause() {

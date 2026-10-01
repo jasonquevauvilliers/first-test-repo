@@ -4,7 +4,7 @@ const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 const ui = Object.fromEntries(["player-score", "ai-score", "overlay", "message", "detail", "start", "pause", "restart", "status"].map(id => [id, document.getElementById(id)]));
 const WIDTH = 960, HEIGHT = 540, PADDLE_WIDTH = 14, PADDLE_HEIGHT = 96;
-const BALL_RADIUS = 9, WINNING_SCORE = 7, STEP = 1 / 120;
+const BALL_RADIUS = 9, WINNING_SCORE = 3, STEP = 1 / 120;
 const keys = new Set();
 const heldDirections = new Map();
 let dragPointer = null;
@@ -76,7 +76,7 @@ function start() {
   accumulator = 0;
   canvas.focus({ preventScroll: true });
   syncUI();
-  ui.status.textContent = "Game started. First to seven wins.";
+  ui.status.textContent = "Game started. First to three wins.";
 }
 
 function pause() {
